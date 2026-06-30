@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Cup Tickets Booking</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: rgba(255,255,255,.09);
+      --card-2: rgba(255,255,255,.14);
+      --text: #f8fbff;
+      --muted: #b9c7d9;
+      --gold: #f5c451;
+      --green: #20d083;
+      --red: #ff5f6d;
+      --blue: #3b82f6;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(32,208,131,.22), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(245,196,81,.22), transparent 28%),
+        linear-gradient(135deg, #07111f 0%, #10243f 55%, #07111f 100%);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 28px 5vw 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(7,17,31,.82);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,.09);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--gold), var(--green));
+      color: #07111f; font-weight: 900; font-size: 22px;
+      box-shadow: var(--shadow);
+    }
+    h1 { margin: 0; font-size: clamp(22px, 3vw, 38px); }
+    .subtitle { color: var(--muted); margin-top: 4px; font-size: 14px; }
+
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .pill {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    main { padding: 28px 5vw 60px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+    .hero-card, .booking-panel, .match-card, .modal-card {
+      border: 1px solid rgba(255,255,255,.12);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .hero-card { padding: clamp(24px, 5vw, 54px); overflow: hidden; position: relative; }
+    .hero-card::after {
+      content: "⚽";
+      position: absolute;
+      right: 24px; bottom: -18px;
+      font-size: clamp(86px, 13vw, 170px);
+      opacity: .12;
+    }
+    .hero h2 { font-size: clamp(34px, 6vw, 72px); line-height: .95; margin: 0 0 14px; }
+    .hero p { color: var(--muted); max-width: 760px; line-height: 1.7; font-size: 17px; }
+    .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .stat { padding: 14px 18px; background: rgba(255,255,255,.08); border-radius: 18px; min-width: 120px; }
+    .stat strong { display: block; font-size: 24px; color: var(--gold); }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .booking-panel { padding: 22px; }
+    .booking-panel h3, .section-title { margin: 0 0 16px; font-size: 24px; }
+    label { display: block; color: var(--muted); font-size: 13px; margin: 13px 0 7px; }
+    input, select {
+      width: 100%; padding: 13px 14px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.09);
+      color: var(--text); outline: none;
+    }
+    option { color: #07111f; }
+    input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,196,81,.14); }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 220px 220px;
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .matches-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .match-card { padding: 20px; position: relative; overflow: hidden; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(245,196,81,.16); color: #ffe7a2;
+      border: 1px solid rgba(245,196,81,.24);
+      padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800;
+    }
+    .teams { margin: 20px 0 14px; font-size: 25px; font-weight: 900; line-height: 1.25; }
+    .details { display: grid; gap: 9px; color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .details div { display: flex; gap: 8px; align-items: start; }
+    .categories { display: grid; gap: 9px; margin: 16px 0; }
+    .category {
+      display: flex; justify-content: space-between; gap: 10px;
+      background: rgba(255,255,255,.07); border-radius: 14px; padding: 11px;
+      border: 1px solid rgba(255,255,255,.08);
+      cursor: pointer;
+    }
+    .category:hover { background: rgba(255,255,255,.13); }
+    .category.active { border-color: var(--green); background: rgba(32,208,131,.15); }
+    .category small { color: var(--muted); display: block; margin-top: 3px; }
+
+    button {
+      border: 0; border-radius: 14px; padding: 13px 16px;
+      color: #07111f; background: linear-gradient(135deg, var(--gold), var(--green));
+      font-weight: 900; cursor: pointer; transition: .2s ease;
+    }
+    button:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    button.secondary { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid rgba(255,255,255,.14); }
+    button.danger { background: rgba(255,95,109,.15); color: #ffd4d8; border: 1px solid rgba(255,95,109,.25); }
+    .full-btn { width: 100%; }
+
+    .summary {
+      margin-top: 16px; padding: 16px; border-radius: 18px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.11);
+      line-height: 1.8; color: var(--muted);
+    }
+    .summary strong { color: var(--text); }
+    .price { color: var(--green); font-weight: 900; }
+
+    .bookings { margin-top: 34px; }
+    .booking-list { display: grid; gap: 12px; }
+    .booking-item {
+      display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center;
+      padding: 16px; border-radius: 18px; background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .booking-id { color: var(--gold); font-weight: 900; }
+    .muted { color: var(--muted); }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.65);
+      display: none; align-items: center; justify-content: center; padding: 18px; z-index: 100;
+    }
+    .modal.show { display: flex; }
+    .modal-card { max-width: 560px; width: 100%; padding: 26px; }
+    .success { font-size: 46px; margin-bottom: 8px; }
+
+    footer { text-align: center; color: var(--muted); padding: 30px; border-top: 1px solid rgba(255,255,255,.08); }
+
+    @media (max-width: 950px) {
+      .hero, .filters { grid-template-columns: 1fr; }
+      .matches-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      header { position: static; align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 650px) {
+      .matches-grid { grid-template-columns: 1fr; }
+      .booking-item { grid-template-columns: 1fr; }
+      .stats { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">WC</div>
+      <div>
+        <h1>World Cup Tickets</h1>
+        <div class="subtitle">Fast booking system for 5 premium matches</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="pill">Secure Demo Booking</div>
+      <div class="pill" id="bookingCount">0 bookings</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-card">
+        <span class="badge">🏆 Official-style ticket portal</span>
+        <h2>Book your seat for the biggest football nights.</h2>
+        <p>Select one of five World Cup matches, choose your category, enter your details, and receive an instant booking confirmation. This single-file app is ready for GitHub Pages.</p>
+        <div class="stats">
+          <div class="stat"><strong>5</strong><span>Different matches</span></div>
+          <div class="stat"><strong>4</strong><span>Ticket categories</span></div>
+          <div class="stat"><strong>24/7</strong><span>Online booking</span></div>
+          <div class="stat"><strong>PDF*</strong><span>Printable confirmation</span></div>
+        </div>
+      </div>
+
+      <aside class="booking-panel" id="bookingForm">
+        <h3>Book Tickets</h3>
+        <label for="selectedMatch">Selected Match</label>
+        <select id="selectedMatch"></select>
+
+        <label for="selectedCategory">Ticket Category</label>
+        <select id="selectedCategory"></select>
+
+        <label for="quantity">Number of Tickets</label>
+        <select id="quantity">
+          <option value="1">1 Ticket</option>
+          <option value="2">2 Tickets</option>
+          <option value="3">3 Tickets</option>
+          <option value="4">4 Tickets</option>
+        </select>
+
+        <label for="name">Full Name</label>
+        <input id="name" type="text" placeholder="Example: Mohamed Ali" required />
+
+        <label for="email">Email Address</label>
+        <input id="email" type="email" placeholder="name@example.com" required />
+
+        <label for="phone">Phone Number</label>
+        <input id="phone" type="tel" placeholder="+20 100 000 0000" required />
+
+        <div class="summary" id="summaryBox"></div>
+        <button class="full-btn" onclick="submitBooking()">Confirm Booking</button>
+      </aside>
+    </section>
+
+    <section>
+      <h2 class="section-title">Available Matches</h2>
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="Search team, city, stadium..." oninput="renderMatches()" />
+        <select id="cityFilter" onchange="renderMatches()">
+          <option value="all">All Cities</option>
+        </select>
+        <select id="sortFilter" onchange="renderMatches()">
+          <option value="date">Sort by date</option>
+          <option value="price">Sort by lowest price</option>
+          <option value="popular">Sort by popularity</option>
+        </select>
+      </div>
+      <div class="matches-grid" id="matchesGrid"></div>
+    </section>
+
+    <section class="bookings">
+      <h2 class="section-title">Saved Bookings</h2>
+      <div class="booking-list" id="bookingList"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="successModal">
+    <div class="modal-card">
+      <div class="success">✅</div>
+      <h2>Booking Confirmed</h2>
+      <p class="muted" id="modalText"></p>
+      <div class="summary" id="ticketPreview"></div>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <button onclick="window.print()">Print Ticket</button>
+        <button class="secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Demo ticket booking app. Replace demo match data and payment logic before real commercial use.
+  </footer>
+
+  <script>
+    const matches = [
+      {
+        id: 1,
+        stage: 'Group Stage',
+        teams: 'Argentina vs Spain',
+        date: '2026-06-15',
+        time: '20:00',
+        city: 'New York / New Jersey',
+        stadium: 'MetLife Stadium',
+        gatesOpen: '17:30',
+        popularity: 98,
+        categories: [
+          { name: 'Standard', price: 120, available: 240, note: 'Upper seats, great value' },
+          { name: 'Premium', price: 260, available: 120, note: 'Better central view' },
+          { name: 'VIP', price: 650, available: 40, note: 'Lounge access included' },
+          { name: 'Family', price: 95, available: 180, note: 'Family-friendly section' }
+        ]
+      },
+      {
+        id: 2,
+        stage: 'Group Stage',
+        teams: 'Brazil vs Germany',
+        date: '2026-06-18',
+        time: '18:30',
+        city: 'Los Angeles',
+        stadium: 'SoFi Stadium',
+        gatesOpen: '16:00',
+        popularity: 96,
+        categories: [
+          { name: 'Standard', price: 115, available: 300, note: 'Upper bowl seats' },
+          { name: 'Premium', price: 275, available: 95, note: 'Lower bowl view' },
+          { name: 'VIP', price: 700, available: 28, note: 'Hospitality package' },
+          { name: 'Family', price: 90, available: 160, note: 'Best for groups' }
+        ]
+      },
+      {
+        id: 3,
+        stage: 'Round of 16',
+        teams: 'England vs Portugal',
+        date: '2026-06-28',
+        time: '21:00',
+        city: 'Dallas',
+        stadium: 'AT&T Stadium',
+        gatesOpen: '18:30',
+        popularity: 92,
+        categories: [
+          { name: 'Standard', price: 150, available: 210, note: 'Great atmosphere' },
+          { name: 'Premium', price: 330, available: 85, note: 'Side-line seats' },
+          { name: 'VIP', price: 850, available: 25, note: 'Food and lounge access' },
+          { name: 'Family', price: 125, available: 140, note: 'Group-friendly area' }
+        ]
+      },
+      {
+        id: 4,
+        stage: 'Quarter Final',
+        teams: 'France vs Netherlands',
+        date: '2026-07-05',
+        time: '19:00',
+        city: 'Miami',
+        stadium: 'Hard Rock Stadium',
+        gatesOpen: '16:30',
+        popularity: 89,
+        categories: [
+          { name: 'Standard', price: 180, available: 170, note: 'Upper section' },
+          { name: 'Premium', price: 390, available: 75, note: 'Closer to pitch' },
+          { name: 'VIP', price: 980, available: 18, note: 'Luxury experience' },
+          { name: 'Family', price: 145, available: 90, note: 'Comfortable group seats' }
+        ]
+      },
+      {
+        id: 5,
+        stage: 'Final',
+        teams: 'World Cup Final',
+        date: '2026-07-19',
+        time: '20:00',
+        city: 'New York / New Jersey',
+        stadium: 'MetLife Stadium',
+        gatesOpen: '16:30',
+        popularity: 100,
+        categories: [
+          { name: 'Standard', price: 450, available: 80, note: 'Final match access' },
+          { name: 'Premium', price: 950, available: 45, note: 'Excellent view' },
+          { name: 'VIP', price: 2500, available: 12, note: 'Premium hospitality' },
+          { name: 'Family', price: 390, available: 50, note: 'Limited family seats' }
+        ]
+      }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let selectedMatchId = matches[0].id;
+    let selectedCategoryName = matches[0].categories[0].name;
+
+    function money(amount) {
+      return '$' + amount.toLocaleString('en-US');
+    }
+
+    function getMatch() {
+      return matches.find(m => m.id === Number(selectedMatchId));
+    }
+
+    function getCategory() {
+      return getMatch().categories.find(c => c.name === selectedCategoryName);
+    }
+
+    function init() {
+      $('selectedMatch').innerHTML = matches.map(m => `<option value="${m.id}">${m.teams} — ${m.city}</option>`).join('');
+      const cities = [...new Set(matches.map(m => m.city))];
+      $('cityFilter').innerHTML += cities.map(city => `<option value="${city}">${city}</option>`).join('');
+
+      $('selectedMatch').addEventListener('change', (e) => {
+        selectedMatchId = Number(e.target.value);
+        selectedCategoryName = getMatch().categories[0].name;
+        renderCategorySelect();
+        updateSummary();
+        renderMatches();
+      });
+      $('selectedCategory').addEventListener('change', (e) => {
+        selectedCategoryName = e.target.value;
+        updateSummary();
+        renderMatches();
+      });
+      $('quantity').addEventListener('change', updateSummary);
+
+      renderCategorySelect();
+      renderMatches();
+      renderBookings();
+      updateSummary();
+    }
+
+    function renderCategorySelect() {
+      const match = getMatch();
+      $('selectedCategory').innerHTML = match.categories.map(c => `<option value="${c.name}">${c.name} — ${money(c.price)} / ticket</option>`).join('');
+      $('selectedCategory').value = selectedCategoryName;
+    }
+
+    function renderMatches() {
+      const search = $('searchInput').value.toLowerCase();
+      const city = $('cityFilter').value;
+      const sort = $('sortFilter').value;
+
+      let data = matches.filter(m => {
+        const fullText = `${m.teams} ${m.city} ${m.stadium} ${m.stage}`.toLowerCase();
+        return fullText.includes(search) && (city === 'all' || m.city === city);
+      });
+
+      if (sort === 'price') data.sort((a, b) => Math.min(...a.categories.map(c => c.price)) - Math.min(...b.categories.map(c => c.price)));
+      if (sort === 'popular') data.sort((a, b) => b.popularity - a.popularity);
+      if (sort === 'date') data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      $('matchesGrid').innerHTML = data.map(match => {
+        const selected = match.id === Number(selectedMatchId);
+        return `
+          <article class="match-card">
+            <span class="badge">${match.stage}</span>
+            <div class="teams">${match.teams}</div>
+            <div class="details">
+              <div>📅 <span>${formatDate(match.date)} at ${match.time}</span></div>
+              <div>📍 <span>${match.stadium}, ${match.city}</span></div>
+              <div>🚪 <span>Gates open at ${match.gatesOpen}</span></div>
+            </div>
+            <div class="categories">
+              ${match.categories.map(cat => `
+                <div class="category ${selected && cat.name === selectedCategoryName ? 'active' : ''}" onclick="selectTicket(${match.id}, '${cat.name}')">
+                  <div><strong>${cat.name}</strong><small>${cat.note}</small></div>
+                  <div><strong class="price">${money(cat.price)}</strong><small>${cat.available} left</small></div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="full-btn" onclick="selectTicket(${match.id}, '${match.categories[0].name}')">Choose This Match</button>
+          </article>
+        `;
+      }).join('') || `<p class="muted">No matches found. Try another search.</p>`;
+    }
+
+    function selectTicket(matchId, categoryName) {
+      selectedMatchId = matchId;
+      selectedCategoryName = categoryName;
+      $('selectedMatch').value = matchId;
+      renderCategorySelect();
+      $('selectedCategory').value = categoryName;
+      updateSummary();
+      renderMatches();
+      $('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function updateSummary() {
+      const match = getMatch();
+      const cat = getCategory();
+      const qty = Number($('quantity').value);
+      const subtotal = cat.price * qty;
+      const service = Math.round(subtotal * 0.06);
+      const total = subtotal + service;
+
+      $('summaryBox').innerHTML = `
+        <strong>${match.teams}</strong><br>
+        ${formatDate(match.date)} • ${match.time}<br>
+        ${match.stadium}, ${match.city}<br>
+        Category: <strong>${cat.name}</strong> × ${qty}<br>
+        Service fee: ${money(service)}<br>
+        <strong>Total: <span class="price">${money(total)}</span></strong>
+      `;
+    }
+
+    function submitBooking() {
+      const name = $('name').value.trim();
+      const email = $('email').value.trim();
+      const phone = $('phone').value.trim();
+      if (!name || !email || !phone) {
+        alert('Please complete your name, email, and phone number.');
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const match = getMatch();
+      const cat = getCategory();
+      const qty = Number($('quantity').value);
+      const subtotal = cat.price * qty;
+      const service = Math.round(subtotal * 0.06);
+      const total = subtotal + service;
+      const booking = {
+        id: 'WC-' + Date.now().toString().slice(-7),
+        name, email, phone,
+        match: match.teams,
+        date: match.date,
+        time: match.time,
+        stadium: match.stadium,
+        city: match.city,
+        category: cat.name,
+        quantity: qty,
+        total,
+        createdAt: new Date().toLocaleString()
+      };
+
+      const bookings = JSON.parse(localStorage.getItem('worldCupBookings') || '[]');
+      bookings.unshift(booking);
+      localStorage.setItem('worldCupBookings', JSON.stringify(bookings));
+
+      $('modalText').textContent = `Thank you, ${name}. Your booking reference is ${booking.id}.`;
+      $('ticketPreview').innerHTML = ticketHTML(booking);
+      $('successModal').classList.add('show');
+      renderBookings();
+      $('name').value = '';
+      $('email').value = '';
+      $('phone').value = '';
+    }
+
+    function ticketHTML(b) {
+      return `
+        <div class="booking-id">${b.id}</div>
+        <strong>${b.match}</strong><br>
+        ${formatDate(b.date)} • ${b.time}<br>
+        ${b.stadium}, ${b.city}<br>
+        ${b.category} × ${b.quantity}<br>
+        Guest: ${b.name}<br>
+        Total: <strong class="price">${money(b.total)}</strong>
+      `;
+    }
+
+    function renderBookings() {
+      const bookings = JSON.parse(localStorage.getItem('worldCupBookings') || '[]');
+      $('bookingCount').textContent = `${bookings.length} booking${bookings.length === 1 ? '' : 's'}`;
+      $('bookingList').innerHTML = bookings.length ? bookings.map(b => `
+        <div class="booking-item">
+          <div>${ticketHTML(b)}<div class="muted">Booked on ${b.createdAt}</div></div>
+          <button class="danger" onclick="deleteBooking('${b.id}')">Delete</button>
+        </div>
+      `).join('') : `<div class="summary">No bookings yet. Your confirmed bookings will appear here.</div>`;
+    }
+
+    function deleteBooking(id) {
+      const bookings = JSON.parse(localStorage.getItem('worldCupBookings') || '[]').filter(b => b.id !== id);
+      localStorage.setItem('worldCupBookings', JSON.stringify(bookings));
+      renderBookings();
+    }
+
+    function closeModal() {
+      $('successModal').classList.remove('show');
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString + 'T12:00:00').toLocaleDateString('en-US', {
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+      });
+    }
+
+    window.addEventListener('click', (e) => {
+      if (e.target.id === 'successModal') closeModal();
+    });
+
+    init();
+  </script>
+</body>
+</html>
